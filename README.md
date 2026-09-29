@@ -80,9 +80,9 @@ To update, copy `dmc_corona_boot.lua` and `dmc_corona/` again from the newer ver
 
 ## Documentation
 
-`require 'dmc_corona.dmc_patch'` returns lua-patch's module, so its documentation applies as written:
+`require 'dmc_corona.dmc_patch'` returns a copy of lua-patch's module (0.4.0) with `VERSION` added, so its documentation applies as written:
 
-- [Reference](https://github.com/dmccuskey/lua-patch#reference): `addPatch()`, `removePatch()`, and each patch
+- [Reference](https://github.com/dmccuskey/lua-patch#reference): `addPatch()`, `removePatch()`, `removeAllPatches()`, and each patch
 - [Known Issues](https://github.com/dmccuskey/lua-patch#known-issues) of the patches
 
 ## Configuration
@@ -91,14 +91,11 @@ dmc-patch has no settings: `dmc_corona.cfg` needs no `[DMC_PATCH]` section, only
 
 ## Known Issues
 
-The bugs of the patches themselves are in lua-patch's [Known Issues](https://github.com/dmccuskey/lua-patch#known-issues); the one to know first: patches are global, and nothing counts who uses them, so `removePatch()` also turns a patch off for the DMC libraries that turned it on and still need it (dmc-websockets turns on all three, dmc-wamp `table-pop` and `print-output`, dmc-netstream `string-format`). `removeAllPatches` is broken; use `removePatch()`. In `dmc_patch.lua`:
-
-- It sets the global `_extend` (its copy of `Utils.extend()` declares the inner function without `local`).
-- Its version (`0.1.0`) isn't available to code.
+dmc-patch's own code has none known. The patches' are in lua-patch's [Known Issues](https://github.com/dmccuskey/lua-patch#known-issues); the one to know first: patches are global, and nothing counts who uses them, so `removePatch()` and `removeAllPatches()` also turn a patch off for the DMC libraries that turned it on and still need it (dmc-websockets turns on all three, dmc-wamp `table-pop` and `print-output`, dmc-netstream `string-format`).
 
 ## Development
 
-Only `dmc_corona/dmc_patch.lua` is written in this repository. It loads the DMC boot loader and returns lua-patch's module from `lib.dmc_lua.lua_patch`. Everything else is a generated copy; fix it in its own repository, then rebuild:
+Only `dmc_corona/dmc_patch.lua` and `tests/` are written in this repository. `dmc_patch.lua` loads the DMC boot loader and returns a copy of lua-patch's module from `lib.dmc_lua.lua_patch`, with `VERSION`; the shared module is left as it is (the patches themselves are global either way). Everything else is a generated copy; fix it in its own repository, then rebuild:
 
 | file | owner |
 |---|---|
@@ -113,7 +110,13 @@ snakemake --cores 1 build_all
 
 The build copies all of DMC-Lua-Library, not only lua-patch.
 
-dmc-patch has no tests of its own; lua-patch's are in its `spec/`. The Quick Start is the check that the package loads in Solar2D.
+The unit tests check the wrapper and that lua-patch's fixes come through it; lua-patch's full specs are in its `spec/`. They run under plain Lua 5.1 with dkjson, with stand-ins for the Solar2D globals the boot loader uses. From the repository's root folder:
+
+```sh
+tests/run_unit.sh
+```
+
+The patches' on/off lines are mixed with the test output. The Quick Start is the check that the package loads in Solar2D.
 
 ## License
 
